@@ -1,0 +1,43 @@
+origem,destino,tipo_conexao,justificativa,peso
+REC,SSA,regional,"mesma regiao Nordeste, capitais vizinhas",1.0
+REC,NAT,regional,"mesma regiao Nordeste, capitais proximas",1.0
+REC,JPA,regional,"mesma regiao Nordeste, capitais vizinhas",1.0
+SSA,FOR,regional,"mesma regiao Nordeste",1.0
+FOR,NAT,regional,"mesma regiao Nordeste, capitais proximas",1.0
+FOR,THE,regional,"mesma regiao Nordeste",1.0
+JPA,NAT,regional,"mesma regiao Nordeste, capitais vizinhas",1.0
+THE,SSA,regional,"mesma regiao Nordeste",1.0
+GRU,CGH,regional,"mesma cidade Sao Paulo",1.0
+GRU,GIG,regional,"mesma regiao Sudeste, eixo Rio-SP",1.0
+GRU,CNF,regional,"mesma regiao Sudeste",1.0
+GIG,CNF,regional,"mesma regiao Sudeste",1.0
+CNF,VIX,regional,"mesma regiao Sudeste, capitais proximas",1.0
+GIG,VIX,regional,"mesma regiao Sudeste, capitais proximas",1.0
+BSB,GYN,regional,"mesma regiao Centro-Oeste, capitais proximas",1.0
+CWB,FLN,regional,"mesma regiao Sul, capitais proximas",1.0
+CWB,POA,regional,"mesma regiao Sul",1.0
+FLN,POA,regional,"mesma regiao Sul",1.0
+MAO,BEL,regional,"mesma regiao Norte",1.0
+MAO,PVH,regional,"mesma regiao Norte",1.0
+PVH,RBR,regional,"mesma regiao Norte, capitais vizinhas",1.0
+BEL,PVH,regional,"mesma regiao Norte",1.0
+GRU,REC,hub,"hub nacional GRU conecta ao Nordeste",2.0
+GRU,SSA,hub,"hub nacional GRU conecta ao Nordeste",2.0
+GRU,FOR,hub,"hub nacional GRU conecta ao Nordeste",2.0
+GRU,BSB,hub,"hub nacional GRU conecta ao Centro-Oeste",2.0
+GRU,CWB,hub,"hub nacional GRU conecta ao Sul",2.0
+GRU,POA,hub,"hub nacional GRU conecta ao Sul",2.0
+GRU,MAO,hub,"hub nacional GRU conecta ao Norte",2.0
+GRU,BEL,hub,"hub nacional GRU conecta ao Norte",2.0
+BSB,REC,hub,"hub nacional BSB conecta ao Nordeste",2.0
+BSB,SSA,hub,"hub nacional BSB conecta ao Nordeste",2.0
+BSB,FOR,hub,"hub nacional BSB conecta ao Nordeste",2.0
+BSB,GRU,hub,"hub nacional BSB conecta ao Sudeste",2.0
+BSB,GIG,hub,"hub nacional BSB conecta ao Sudeste",2.0
+BSB,CNF,hub,"hub nacional BSB conecta ao Sudeste",2.0
+BSB,CWB,hub,"hub nacional BSB conecta ao Sul",2.0
+BSB,MAO,hub,"hub nacional BSB conecta ao Norte",2.0
+BSB,BEL,hub,"hub nacional BSB conecta ao Norte",2.0
+THE,BEL,inter-regional,"conexao Nordeste-Norte, capitais com rotas reais",2.5
+CGH,CWB,inter-regional,"conexao Sudeste-Sul, ponte aerea",2.5
+VIX,SSA,inter-regional,"conexao Sudeste-Nordeste, costa litoranea",2.5

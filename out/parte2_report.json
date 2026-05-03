@@ -1,0 +1,109 @@
+{
+  "dataset": {
+    "nome": "Facebook Ego (SNAP)",
+    "nodes": 4039,
+    "edges": 88234,
+    "directed": false,
+    "descricao": "Rede social do Facebook com circulos de amizade (ego networks combinadas)"
+  },
+  "resultados": [
+    {
+      "algoritmo": "BFS",
+      "fonte": "0",
+      "tempo_ms": 22.07,
+      "nos_visitados": 4039,
+      "niveis": 6
+    },
+    {
+      "algoritmo": "BFS",
+      "fonte": "107",
+      "tempo_ms": 32.25,
+      "nos_visitados": 4039,
+      "niveis": 5
+    },
+    {
+      "algoritmo": "BFS",
+      "fonte": "1684",
+      "tempo_ms": 19.13,
+      "nos_visitados": 4039,
+      "niveis": 5
+    },
+    {
+      "algoritmo": "DFS",
+      "fonte": "0",
+      "tempo_ms": 160.31,
+      "nos_visitados": 4039,
+      "ciclo_detectado": true
+    },
+    {
+      "algoritmo": "DFS",
+      "fonte": "107",
+      "tempo_ms": 200.3,
+      "nos_visitados": 4039,
+      "ciclo_detectado": true
+    },
+    {
+      "algoritmo": "DFS",
+      "fonte": "1684",
+      "tempo_ms": 175.7,
+      "nos_visitados": 4039,
+      "ciclo_detectado": true
+    },
+    {
+      "algoritmo": "DIJKSTRA",
+      "origem": "0",
+      "destino": "100",
+      "tempo_ms": 80.7,
+      "custo": 1.0,
+      "saltos": 2
+    },
+    {
+      "algoritmo": "DIJKSTRA",
+      "origem": "0",
+      "destino": "3000",
+      "tempo_ms": 77.81,
+      "custo": 3.0,
+      "saltos": 4
+    },
+    {
+      "algoritmo": "DIJKSTRA",
+      "origem": "107",
+      "destino": "1684",
+      "tempo_ms": 77.85,
+      "custo": 1.0,
+      "saltos": 2
+    },
+    {
+      "algoritmo": "DIJKSTRA",
+      "origem": "200",
+      "destino": "4000",
+      "tempo_ms": 78.95,
+      "custo": 6.0,
+      "saltos": 7
+    },
+    {
+      "algoritmo": "DIJKSTRA",
+      "origem": "500",
+      "destino": "3500",
+      "tempo_ms": 79.64,
+      "custo": 4.0,
+      "saltos": 5
+    },
+    {
+      "algoritmo": "BELLMAN_FORD",
+      "caso": "pesos negativos sem ciclo negativo",
+      "origem": "0",
+      "tempo_ms": 0.07,
+      "ciclo_negativo": false,
+      "nos": 50
+    },
+    {
+      "algoritmo": "BELLMAN_FORD",
+      "caso": "ciclo negativo detectado",
+      "origem": "X",
+      "tempo_ms": 0.01,
+      "ciclo_negativo": true,
+      "nos": 4
+    }
+  ]
+}
