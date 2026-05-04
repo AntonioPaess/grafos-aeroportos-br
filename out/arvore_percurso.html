@@ -88,7 +88,7 @@
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([{"color": "#3498db", "font": {"color": "black"}, "id": "GRU", "label": "GRU", "shape": "dot", "size": 25}, {"color": "#9b59b6", "font": {"color": "black"}, "id": "MAO", "label": "MAO", "shape": "dot", "size": 25}, {"color": "#2ecc71", "font": {"color": "black"}, "id": "POA", "label": "POA", "shape": "dot", "size": 25}, {"color": "#e74c3c", "font": {"color": "black"}, "id": "REC", "label": "REC", "shape": "dot", "size": 25}]);
+                  nodes = new vis.DataSet([{"color": "#e74c3c", "font": {"color": "black"}, "id": "REC", "label": "REC", "shape": "dot", "size": 25}, {"color": "#9b59b6", "font": {"color": "black"}, "id": "MAO", "label": "MAO", "shape": "dot", "size": 25}, {"color": "#3498db", "font": {"color": "black"}, "id": "GRU", "label": "GRU", "shape": "dot", "size": 25}, {"color": "#2ecc71", "font": {"color": "black"}, "id": "POA", "label": "POA", "shape": "dot", "size": 25}]);
                   edges = new vis.DataSet([{"color": "#e74c3c", "from": "REC", "title": "REC\u2192POA", "to": "GRU", "width": 5}, {"color": "#e74c3c", "from": "GRU", "title": "REC\u2192POA", "to": "POA", "width": 5}, {"color": "#2980b9", "from": "MAO", "title": "MAO\u2192GRU", "to": "GRU", "width": 5}]);
 
                   nodeColors = {};
@@ -153,7 +153,7 @@
         </script>
     
     <div style="position:fixed;top:10px;left:10px;z-index:9999;background:white;padding:10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.2);font-size:13px;">
-      <b>Arvore de Percurso</b><br>
+      <b>Árvore de Percurso</b><br>
       <span style="color:#e74c3c;">&#9644; REC → POA</span><br>
       <span style="color:#2980b9;">&#9644; MAO → GRU</span>
     </div>

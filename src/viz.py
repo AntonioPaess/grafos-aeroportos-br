@@ -33,8 +33,20 @@ def generate_grafo_interativo(
     region_map = _airport_region_map(airports)
     ego_data = {r["aeroporto"]: r for r in compute_ego_networks(graph)}
 
-    net = Network(height="700px", width="100%", bgcolor="#ffffff", font_color="black")
-    net.barnes_hut(gravity=-3000, central_gravity=0.3, spring_length=150)
+    net = Network(height="750px", width="100%", bgcolor="#1a1a2e", font_color="white")
+    net.barnes_hut(gravity=-8000, central_gravity=0.2, spring_length=300)
+
+    path_nodes: set[str] = set()
+    path_edges: set[tuple[str, str]] = set()
+    path_labels: list[str] = []
+    if paths:
+        for path in paths:
+            path_labels.append(f"{path[0]} → {path[-1]}")
+            for node in path:
+                path_nodes.add(node)
+            for i in range(len(path) - 1):
+                path_edges.add((path[i], path[i + 1]))
+                path_edges.add((path[i + 1], path[i]))
 
     for node in graph.nodes():
         regiao = region_map.get(node, "?")
@@ -42,36 +54,50 @@ def generate_grafo_interativo(
         grau = graph.degree(node)
         ego = ego_data.get(node, {})
         title = (
-            f"<b>{node}</b><br>"
-            f"Regiao: {regiao}<br>"
-            f"Grau: {grau}<br>"
-            f"Densidade ego: {ego.get('densidade_ego', '?')}"
+            f"<b style='font-size:14px;'>{node}</b><br>"
+            f"<b>Cidade:</b> {next((ap['cidade'] for ap in airports if ap['iata'] == node), '?')}<br>"
+            f"<b>Região:</b> {regiao}<br>"
+            f"<b>Grau:</b> {grau}<br>"
+            f"<b>Densidade ego:</b> {ego.get('densidade_ego', '?')}<br>"
+            f"<b>Ordem ego:</b> {ego.get('ordem_ego', '?')}"
         )
-        net.add_node(node, label=node, title=title, color=color, size=10 + grau * 3)
-
-    path_edges: set[tuple[str, str]] = set()
-    if paths:
-        for path in paths:
-            for i in range(len(path) - 1):
-                path_edges.add((path[i], path[i + 1]))
-                path_edges.add((path[i + 1], path[i]))
+        is_on_path = node in path_nodes
+        if is_on_path:
+            node_color = {"background": color, "border": "#ff6b6b",
+                          "highlight": {"background": color, "border": "#ff0000"}}
+            border_width = 4
+            node_size = 25 + grau * 4
+        else:
+            node_color = {"background": color, "border": "#ffffff33",
+                          "highlight": {"background": color, "border": "#ffffff"}}
+            border_width = 1
+            node_size = 12 + grau * 3
+        net.add_node(node, label=node, title=title, color=node_color,
+                     size=node_size, borderWidth=border_width,
+                     borderWidthSelected=4,
+                     font={"size": 16 if is_on_path else 12, "color": "white",
+                           "strokeWidth": 2, "strokeColor": "#000000"})
 
     for u, v, w in graph.edges():
-        color = "#e74c3c" if (u, v) in path_edges else "#cccccc"
-        width = 4 if (u, v) in path_edges else 1
-        net.add_edge(u, v, value=w, title=f"Peso: {w}", color=color, width=width)
+        is_path = (u, v) in path_edges
+        edge_color = "#ff6b6b" if is_path else "#ffffff22"
+        width = 4 if is_path else 0.5
+        net.add_edge(u, v, value=w, title=f"Peso: {w}", color=edge_color, width=width)
 
     net.set_options("""
     {
       "interaction": {
         "navigationButtons": true,
-        "keyboard": true
+        "keyboard": true,
+        "hover": true,
+        "tooltipDelay": 100
       },
       "physics": {
         "barnesHut": {
-          "gravitationalConstant": -3000,
-          "centralGravity": 0.3,
-          "springLength": 150
+          "gravitationalConstant": -8000,
+          "centralGravity": 0.2,
+          "springLength": 300,
+          "damping": 0.12
         }
       }
     }
@@ -80,46 +106,63 @@ def generate_grafo_interativo(
     out_path = os.path.join(out_dir, "grafo_interativo.html")
     net.save_graph(out_path)
 
-    _inject_search_box(out_path)
+    _inject_ui(out_path, path_labels, paths)
 
 
-def _inject_search_box(html_path: str) -> None:
+def _inject_ui(html_path: str, path_labels: list[str], paths: list[list[str]] | None) -> None:
     with open(html_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    search_html = """
-    <div style="position:fixed;top:10px;left:10px;z-index:9999;background:white;padding:10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
-      <input id="searchBox" type="text" placeholder="Buscar aeroporto (IATA)..." style="padding:6px;font-size:14px;border:1px solid #ccc;border-radius:4px;">
-      <button onclick="searchNode()" style="padding:6px 12px;font-size:14px;cursor:pointer;">Buscar</button>
-      <div style="margin-top:5px;font-size:11px;">
-        <span style="color:#e74c3c;">&#9632; Nordeste</span>
-        <span style="color:#3498db;">&#9632; Sudeste</span>
-        <span style="color:#f39c12;">&#9632; Centro-Oeste</span>
-        <span style="color:#2ecc71;">&#9632; Sul</span>
-        <span style="color:#9b59b6;">&#9632; Norte</span>
-        | <span style="color:#e74c3c;">&#9644; Caminhos obrigatorios</span>
+    paths_html = ""
+    path_colors_legend = ["#ff6b6b", "#6bcfff"]
+    if paths:
+        for i, (label, path) in enumerate(zip(path_labels, paths)):
+            color = path_colors_legend[i % len(path_colors_legend)]
+            custo_str = " → ".join(path)
+            paths_html += f'<div style="margin-top:4px;"><span style="color:{color};font-size:16px;">━━</span> <b>{label}</b><br><span style="font-size:11px;color:#bbb;">{custo_str}</span></div>'
+
+    ui_html = f"""
+    <div id="legend" style="position:fixed;top:12px;left:12px;z-index:9999;background:rgba(26,26,46,0.95);padding:14px 18px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.4);color:white;font-family:sans-serif;max-width:320px;">
+      <div style="font-size:16px;font-weight:bold;margin-bottom:8px;">🛫 Rede de Aeroportos do Brasil</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <span style="color:#e74c3c;">● Nordeste</span>
+        <span style="color:#3498db;">● Sudeste</span>
+        <span style="color:#f39c12;">● Centro-Oeste</span>
+        <span style="color:#2ecc71;">● Sul</span>
+        <span style="color:#9b59b6;">● Norte</span>
       </div>
+      <div style="border-top:1px solid #ffffff22;padding-top:8px;margin-bottom:8px;">
+        <b>Caminhos obrigatórios (Dijkstra):</b>
+        {paths_html}
+      </div>
+      <div style="border-top:1px solid #ffffff22;padding-top:8px;">
+        <input id="searchBox" type="text" placeholder="Buscar aeroporto (IATA)..."
+               style="padding:6px 10px;font-size:13px;border:1px solid #555;border-radius:6px;background:#2a2a4a;color:white;width:180px;">
+        <button onclick="searchNode()"
+                style="padding:6px 14px;font-size:13px;cursor:pointer;border:none;border-radius:6px;background:#e74c3c;color:white;margin-left:4px;">Buscar</button>
+      </div>
+      <div style="margin-top:6px;font-size:10px;color:#888;">Tamanho do nó = grau de conexão</div>
     </div>
     <script>
-    function searchNode() {
+    function searchNode() {{
       var val = document.getElementById("searchBox").value.toUpperCase().trim();
-      if (val && network) {
+      if (val && network) {{
         var nodeIds = nodes.getIds();
-        var found = nodeIds.find(function(id) { return id.toUpperCase() === val; });
-        if (found) {
-          network.focus(found, {scale: 1.5, animation: true});
+        var found = nodeIds.find(function(id) {{ return id.toUpperCase() === val; }});
+        if (found) {{
+          network.focus(found, {{scale: 1.8, animation: true}});
           network.selectNodes([found]);
-        } else {
-          alert("Aeroporto nao encontrado: " + val);
-        }
-      }
-    }
-    document.getElementById("searchBox").addEventListener("keypress", function(e) {
+        }} else {{
+          alert("Aeroporto não encontrado: " + val);
+        }}
+      }}
+    }}
+    document.getElementById("searchBox").addEventListener("keypress", function(e) {{
       if (e.key === "Enter") searchNode();
-    });
+    }});
     </script>
     """
-    content = content.replace("</body>", search_html + "\n</body>")
+    content = content.replace("</body>", ui_html + "\n</body>")
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(content)
 
@@ -166,7 +209,7 @@ def generate_arvore_percurso(
         content = f.read()
     legend = """
     <div style="position:fixed;top:10px;left:10px;z-index:9999;background:white;padding:10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.2);font-size:13px;">
-      <b>Arvore de Percurso</b><br>
+      <b>Árvore de Percurso</b><br>
       <span style="color:#e74c3c;">&#9644; REC → POA</span><br>
       <span style="color:#2980b9;">&#9644; MAO → GRU</span>
     </div>
@@ -182,9 +225,9 @@ def generate_distribuicao_graus(graph: Graph, out_dir: str) -> None:
     graus = [graph.degree(n) for n in graph.nodes()]
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.hist(graus, bins=range(min(graus), max(graus) + 2), edgecolor="black", color="#3498db", alpha=0.8)
-    ax.set_title("Distribuicao de Graus dos Aeroportos")
+    ax.set_title("Distribuição de Graus dos Aeroportos")
     ax.set_xlabel("Grau")
-    ax.set_ylabel("Frequencia")
+    ax.set_ylabel("Frequência")
     ax.legend(["Aeroportos"])
     fig.tight_layout()
     fig.savefig(os.path.join(out_dir, "viz_distribuicao_graus.png"), dpi=150)
@@ -220,16 +263,16 @@ def generate_comparacao_regioes(
 
     colors = [REGION_COLORS.get(n, "#95a5a6") for n in nomes]
     ax1.bar(nomes, tamanhos, color=colors, edgecolor="black")
-    ax1.set_title("Numero de Arestas por Regiao")
-    ax1.set_xlabel("Regiao")
+    ax1.set_title("Número de Arestas por Região")
+    ax1.set_xlabel("Região")
     ax1.set_ylabel("Tamanho (|E|)")
 
     ax2.bar(nomes, densidades, color=colors, edgecolor="black")
-    ax2.set_title("Densidade por Regiao")
-    ax2.set_xlabel("Regiao")
+    ax2.set_title("Densidade por Região")
+    ax2.set_xlabel("Região")
     ax2.set_ylabel("Densidade")
 
-    fig.suptitle("Comparacao entre Regioes", fontsize=14, fontweight="bold")
+    fig.suptitle("Comparação entre Regiões", fontsize=14, fontweight="bold")
     fig.tight_layout()
     fig.savefig(os.path.join(out_dir, "viz_comparacao_regioes.png"), dpi=150)
     plt.close(fig)
@@ -254,7 +297,6 @@ def generate_hubs_subgrafo(graph: Graph, airports: list[dict], out_dir: str) -> 
         regiao = region_map.get(node, "?")
         color = REGION_COLORS.get(regiao, "#95a5a6")
         size = 30 if node in hub_set else 15
-        border = "#000000" if node in hub_set else color
         net.add_node(node, label=node, color=color, size=size,
                      borderWidth=3 if node in hub_set else 1,
                      font={"size": 14 if node in hub_set else 10})
@@ -290,8 +332,8 @@ def generate_bfs_camadas(graph: Graph, source: str, out_dir: str) -> None:
                            arrowprops=dict(arrowstyle="->", color="#7f8c8d", lw=1.5))
 
     ax.set_title(f"BFS em Camadas a partir de {source}")
-    ax.set_xlabel("Posicao na Camada")
-    ax.set_ylabel("Nivel BFS")
+    ax.set_xlabel("Posição na Camada")
+    ax.set_ylabel("Nível BFS")
     ax.set_yticks(range(0, -(max_level + 1), -1))
     ax.set_yticklabels(range(0, max_level + 1))
     ax.legend(["Aeroportos"])
@@ -316,16 +358,16 @@ def generate_all_visualizations(
     print("  Gerando grafo interativo...")
     generate_grafo_interativo(graph, airports, out_dir, obligatory_paths)
 
-    print("  Gerando arvore de percurso...")
+    print("  Gerando árvore de percurso...")
     generate_arvore_percurso(graph, airports, out_dir)
 
-    print("  Gerando distribuicao de graus...")
+    print("  Gerando distribuição de graus...")
     generate_distribuicao_graus(graph, out_dir)
 
     print("  Gerando ranking de conectados...")
     generate_ranking_conectados(graph, out_dir)
 
-    print("  Gerando comparacao de regioes...")
+    print("  Gerando comparação de regiões...")
     generate_comparacao_regioes(graph, airports, out_dir)
 
     print("  Gerando subgrafo dos hubs...")
@@ -334,4 +376,4 @@ def generate_all_visualizations(
     print("  Gerando BFS em camadas...")
     generate_bfs_camadas(graph, "REC", out_dir)
 
-    print("Todas as visualizacoes geradas!")
+    print("Todas as visualizações geradas!")
