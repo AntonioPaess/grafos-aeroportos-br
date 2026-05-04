@@ -48,6 +48,7 @@ projeto-grafos/
 │   └─ parte2_viz_comparacao_algos.png  # comparacao de algoritmos
 ├─ src/
 │   ├─ cli.py                           # entry point (argparse)
+│   ├─ app.py                           # app Streamlit (bonus UX)
 │   ├─ solve.py                         # metricas e rankings (Parte 1)
 │   ├─ solve_parte2.py                  # analise completa (Parte 2)
 │   ├─ viz.py                           # visualizacoes
@@ -105,6 +106,14 @@ python -m src.cli --dataset ./data/dataset_parte2/ --parte2 --out ./out/
 ```bash
 pytest tests/ -v
 ```
+
+### App Streamlit (Bonus)
+
+```bash
+streamlit run src/app.py
+```
+
+Permite selecionar dataset (Parte 1 ou 2), algoritmo, origem e destino de forma interativa.
 
 ## Modelagem do Grafo (Parte 1)
 
