@@ -132,18 +132,19 @@ export default function AlgorithmPanel({
       </div>
 
       {/* Algorithm description */}
-      <div className="bg-slate-800/40 rounded-lg p-3 border border-slate-700/40">
-        <div className="text-sm font-semibold text-slate-200 mb-1">{info.title}</div>
-        <div className="text-xs text-slate-400">{info.description}</div>
+      <div className="rounded-lg p-3" style={{ background: "var(--bg-muted)", border: "1px solid var(--border)" }}>
+        <div className="text-sm font-semibold mb-1" style={{ color: "var(--fg)" }}>{info.title}</div>
+        <div className="text-sm" style={{ color: "var(--fg-muted)" }}>{info.description}</div>
       </div>
 
       {/* Source */}
       <div>
-        <label className="block text-xs text-slate-400 mb-1.5 font-medium">Origem</label>
+        <label className="block text-sm mb-1.5 font-medium" style={{ color: "var(--fg-muted)" }}>Origem</label>
         <select
           value={source}
           onChange={(e) => { setSource(e.target.value); setResult(null); onPathChange(null, new Set()); }}
-          className="w-full bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500"
+          className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
+          style={{ background: "var(--bg-muted)", border: "1px solid var(--border)", color: "var(--fg)" }}
         >
           {nodeList.map((n) => {
             const ap = AIRPORT_MAP.get(n);
@@ -159,11 +160,12 @@ export default function AlgorithmPanel({
       {/* Target (only for Dijkstra/Bellman-Ford) */}
       {needsTarget && (
         <div>
-          <label className="block text-xs text-slate-400 mb-1.5 font-medium">Destino</label>
+          <label className="block text-sm mb-1.5 font-medium" style={{ color: "var(--fg-muted)" }}>Destino</label>
           <select
             value={target}
             onChange={(e) => { setTarget(e.target.value); setResult(null); onPathChange(null, new Set()); }}
-            className="w-full bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-sky-500"
+            className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
+            style={{ background: "var(--bg-muted)", border: "1px solid var(--border)", color: "var(--fg)" }}
           >
             {nodeList.map((n) => {
               const ap = AIRPORT_MAP.get(n);
@@ -187,10 +189,10 @@ export default function AlgorithmPanel({
 
       {/* Results */}
       {result && (
-        <div className="bg-slate-800/60 rounded-xl border border-slate-700/50 p-4 space-y-3">
+        <div className="rounded-xl p-4 space-y-3" style={{ background: "var(--bg-muted)", border: "1px solid var(--border)" }}>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-slate-200">{result.algorithm}</span>
-            <span className="text-xs text-slate-500 bg-slate-700/50 px-2 py-0.5 rounded-full">
+            <span className="text-sm font-semibold" style={{ color: "var(--fg)" }}>{result.algorithm}</span>
+            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--bg-card)", color: "var(--fg-muted)", border: "1px solid var(--border)" }}>
               {result.elapsed.toFixed(2)}ms
             </span>
           </div>

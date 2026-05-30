@@ -9,16 +9,26 @@ import MetricsCards from "./components/MetricsCards";
 import ChartsSection from "./components/ChartsSection";
 import MandatoryRoutes from "./components/MandatoryRoutes";
 import FacebookPanel from "./components/FacebookPanel";
+import GraphFilters, { Filters, defaultFilters } from "./components/GraphFilters";
+import InsightsCards from "./components/InsightsCards";
 
 const BrazilAirportMap = dynamic(() => import("./components/BrazilAirportMap"), { ssr: false });
 
 type Dataset = "parte1" | "parte2";
-const TABS_P1 = ["Mapa", "Algoritmos", "Métricas", "Análises", "Rotas Obrigatórias"] as const;
+const TABS_P1 = ["Mapa", "Algoritmos", "Métricas", "Insights", "Análises", "Rotas Obrigatórias"] as const;
 type Tab = (typeof TABS_P1)[number] | "Facebook";
+
+const TAB_ICONS: Record<string, string> = {
+  "Mapa": "🗺",
+  "Algoritmos": "⚡",
+  "Métricas": "📊",
+  "Insights": "💡",
+  "Análises": "📈",
+  "Rotas Obrigatórias": "🛣",
+};
 
 export default function Home() {
   const graph = useMemo(() => buildGraph(ADJACENCIAS), []);
-  const edges = useMemo(() => graph.edges(), [graph]);
 
   const [dataset, setDataset] = useState<Dataset>("parte1");
   const [activeTab, setActiveTab] = useState<Tab>("Mapa");
@@ -26,6 +36,23 @@ export default function Home() {
   const [highlightedNodes, setHighlightedNodes] = useState<Set<string>>(new Set());
   const [source, setSource] = useState("GRU");
   const [target, setTarget] = useState("REC");
+  const [filters, setFilters] = useState<Filters>(defaultFilters());
+
+  const filteredAdjacencias = useMemo(() =>
+    ADJACENCIAS.filter((e) => {
+      const a = AIRPORTS.find((ap) => ap.iata === e.origem);
+      const b = AIRPORTS.find((ap) => ap.iata === e.destino);
+      if (!a || !b) return false;
+      if (!filters.regioes.has(a.regiao) && !filters.regioes.has(b.regiao)) return false;
+      if (!filters.tipos.has(e.tipo)) return false;
+      if (!e.companhias.some((c) => filters.companhias.has(c))) return false;
+      return true;
+    }),
+    [filters]
+  );
+
+  const filteredGraph = useMemo(() => buildGraph(filteredAdjacencias), [filteredAdjacencias]);
+  const filteredEdges = useMemo(() => filteredGraph.edges(), [filteredGraph]);
 
   function handlePathChange(path: string[] | null, nodes: Set<string>) {
     setHighlightedPath(path);
@@ -50,31 +77,47 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-sm sticky top-0 z-50">
+      <header
+        className="sticky top-0 z-50"
+        style={{
+          borderBottom: "1px solid var(--border)",
+          background: "color-mix(in srgb, var(--bg) 80%, transparent)",
+          backdropFilter: "blur(12px)",
+        }}
+      >
         <div className="max-w-screen-2xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="text-xl">✈</div>
+            <span className="text-2xl">✈</span>
             <div>
-              <h1 className="text-sm font-bold text-white leading-tight">Rede de Aeroportos BR</h1>
-              <p className="text-xs text-slate-500">Teoria dos Grafos · Cesar School</p>
+              <h1 className="text-sm font-bold leading-tight" style={{ color: "var(--fg)" }}>
+                Rede de Aeroportos BR
+              </h1>
+              <p className="text-xs" style={{ color: "var(--fg-muted)" }}>Teoria dos Grafos · Cesar School</p>
             </div>
           </div>
 
           {/* Dataset switcher */}
-          <div className="flex items-center gap-1 bg-slate-800/60 rounded-xl p-1 border border-slate-700/50">
+          <div
+            className="flex items-center gap-1 rounded-xl p-1"
+            style={{ background: "var(--bg-muted)", border: "1px solid var(--border)" }}
+          >
             <button
               onClick={() => switchDataset("parte1")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                isParte1 ? "bg-sky-600 text-white shadow" : "text-slate-400 hover:text-slate-200"
-              }`}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+              style={{
+                background: isParte1 ? "#0284c7" : "transparent",
+                color: isParte1 ? "white" : "var(--fg-muted)",
+              }}
             >
               Parte 1 — Aeroportos BR
             </button>
             <button
               onClick={() => switchDataset("parte2")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                !isParte1 ? "bg-violet-600 text-white shadow" : "text-slate-400 hover:text-slate-200"
-              }`}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all"
+              style={{
+                background: !isParte1 ? "#7c3aed" : "transparent",
+                color: !isParte1 ? "white" : "var(--fg-muted)",
+              }}
             >
               Parte 2 — Facebook Ego
             </button>
@@ -82,62 +125,74 @@ export default function Home() {
 
           {isParte1 && (
             <div className="flex items-center gap-2">
-              <span className="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full border border-slate-700/60">20 aeroportos</span>
-              <span className="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full border border-slate-700/60">41 rotas</span>
-              <span className="text-xs bg-emerald-900/60 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-800/60">5 regiões</span>
+              <span className="text-sm px-2.5 py-1 rounded-full" style={{ background: "var(--bg-muted)", color: "var(--fg-muted)", border: "1px solid var(--border)" }}>
+                {AIRPORTS.length} aeroportos
+              </span>
+              <span className="text-sm px-2.5 py-1 rounded-full" style={{ background: "var(--bg-muted)", color: "var(--fg-muted)", border: "1px solid var(--border)" }}>
+                {ADJACENCIAS.length} rotas
+              </span>
+              <span className="text-sm px-2.5 py-1 rounded-full" style={{ background: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.3)" }}>
+                5 regiões
+              </span>
             </div>
           )}
           {!isParte1 && (
             <div className="flex items-center gap-2">
-              <span className="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full border border-slate-700/60">4.039 usuários</span>
-              <span className="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full border border-slate-700/60">88.234 amizades</span>
-              <span className="text-xs bg-violet-900/60 text-violet-400 px-2.5 py-1 rounded-full border border-violet-800/60">SNAP Dataset</span>
+              <span className="text-sm px-2.5 py-1 rounded-full" style={{ background: "var(--bg-muted)", color: "var(--fg-muted)", border: "1px solid var(--border)" }}>4.039 usuários</span>
+              <span className="text-sm px-2.5 py-1 rounded-full" style={{ background: "var(--bg-muted)", color: "var(--fg-muted)", border: "1px solid var(--border)" }}>88.234 amizades</span>
+              <span className="text-sm px-2.5 py-1 rounded-full" style={{ background: "rgba(124,58,237,0.1)", color: "#a78bfa", border: "1px solid rgba(124,58,237,0.3)" }}>SNAP Dataset</span>
             </div>
           )}
         </div>
       </header>
 
-      {/* Parte 2 — full width panel */}
+      {/* Parte 2 */}
       {!isParte1 && (
         <main className="flex-1 max-w-screen-2xl mx-auto w-full px-6 py-6">
           <FacebookPanel />
         </main>
       )}
 
-      {/* Parte 1 — sidebar + main */}
+      {/* Parte 1 */}
       {isParte1 && (
         <div className="flex flex-1 max-w-screen-2xl mx-auto w-full px-6 py-5 gap-5">
           {/* Left sidebar */}
           <aside className="w-72 flex-shrink-0 flex flex-col gap-4">
-            <nav className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-1.5 flex flex-col gap-0.5">
+            {/* Navigation */}
+            <nav
+              className="rounded-2xl p-1.5 flex flex-col gap-0.5"
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+            >
               {TABS_P1.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                    activeTab === tab
-                      ? "bg-sky-600 text-white shadow-lg"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
-                  }`}
+                  className="w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-all"
+                  style={{
+                    background: activeTab === tab ? "#0284c7" : "transparent",
+                    color: activeTab === tab ? "white" : "var(--fg-muted)",
+                  }}
                 >
-                  {tab === "Mapa" && "🗺 "}
-                  {tab === "Algoritmos" && "⚡ "}
-                  {tab === "Métricas" && "📊 "}
-                  {tab === "Análises" && "📈 "}
-                  {tab === "Rotas Obrigatórias" && "🛣 "}
-                  {tab}
+                  {TAB_ICONS[tab]} {tab}
                 </button>
               ))}
             </nav>
 
+            {/* Filters */}
+            <GraphFilters filters={filters} onChange={setFilters} />
+
+            {/* Algorithm panel (on Mapa / Algoritmos tab) */}
             {(activeTab === "Mapa" || activeTab === "Algoritmos") && (
-              <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-4 flex-1 overflow-y-auto">
-                <h2 className="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+              <div
+                className="rounded-2xl p-4 flex-1 overflow-y-auto"
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+              >
+                <h2 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--fg)" }}>
                   <span className="w-1.5 h-1.5 rounded-full bg-sky-400 inline-block" />
                   Algoritmos
                 </h2>
                 <AlgorithmPanel
-                  graph={graph}
+                  graph={filteredGraph}
                   onPathChange={handlePathChange}
                   source={source}
                   setSource={setSource}
@@ -151,38 +206,40 @@ export default function Home() {
           {/* Main content */}
           <main className="flex-1 min-w-0 flex flex-col gap-5">
             {activeTab === "Mapa" && (
-              <div className="flex-1 rounded-2xl overflow-hidden" style={{ minHeight: 620 }}>
+              <div className="flex-1 rounded-2xl overflow-hidden" style={{ minHeight: 650 }}>
                 <BrazilAirportMap
                   airports={AIRPORTS}
-                  edges={edges}
+                  edges={filteredEdges}
+                  filteredAdjacencias={filteredAdjacencias}
                   highlightedPath={highlightedPath}
                   highlightedNodes={highlightedNodes}
                   selectedSource={source}
                   selectedTarget={target}
-                  onAirportClick={(iata) => {
-                    if (iata === source) return;
-                    setTarget(iata);
-                  }}
+                  onAirportClick={(iata) => { if (iata !== source) setTarget(iata); }}
                 />
               </div>
             )}
 
             {activeTab === "Algoritmos" && (
-              <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6">
-                <h2 className="text-lg font-semibold text-white mb-1">Algoritmos de Grafos</h2>
-                <p className="text-sm text-slate-400 mb-5">
-                  Selecione o algoritmo e os aeroportos no painel lateral, depois veja o resultado aqui e no mapa.
+              <div
+                className="rounded-2xl p-6"
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+              >
+                <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--fg)" }}>Algoritmos de Grafos</h2>
+                <p className="text-sm mb-5" style={{ color: "var(--fg-muted)" }}>
+                  Selecione o algoritmo e os aeroportos no painel lateral e veja o resultado aqui e no mapa.
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { name: "BFS — Busca em Largura", color: "border-sky-700/60 bg-sky-900/20", desc: "Explora nível por nível. Garante o caminho com menor número de saltos. Complexidade: O(V + E)." },
-                    { name: "DFS — Busca em Profundidade", color: "border-violet-700/60 bg-violet-900/20", desc: "Mergulha o mais fundo possível. Detecta ciclos e componentes. Complexidade: O(V + E)." },
-                    { name: "Dijkstra", color: "border-emerald-700/60 bg-emerald-900/20", desc: "Caminho de menor custo com pesos não-negativos. Usa fila de prioridade. Complexidade: O((V + E) log V)." },
-                    { name: "Bellman-Ford", color: "border-amber-700/60 bg-amber-900/20", desc: "Suporta pesos negativos e detecta ciclos negativos. Complexidade: O(V · E)." },
+                    { name: "BFS — Busca em Largura",       color: "#38bdf8", desc: "Explora nível por nível. Menor número de saltos. O(V + E)." },
+                    { name: "DFS — Busca em Profundidade",  color: "#a78bfa", desc: "Mergulha o mais fundo possível. Detecta ciclos. O(V + E)." },
+                    { name: "Dijkstra",                      color: "#34d399", desc: "Menor custo com pesos não-negativos. Fila de prioridade. O((V+E)logV)." },
+                    { name: "Bellman-Ford",                  color: "#f59e0b", desc: "Suporta pesos negativos. Detecta ciclos negativos. O(V·E)." },
                   ].map((alg) => (
-                    <div key={alg.name} className={`rounded-xl border p-4 ${alg.color}`}>
-                      <div className="font-semibold text-white mb-1 text-sm">{alg.name}</div>
-                      <div className="text-xs text-slate-400 leading-relaxed">{alg.desc}</div>
+                    <div key={alg.name} className="rounded-xl border p-4"
+                      style={{ background: alg.color + "11", border: `1px solid ${alg.color}33` }}>
+                      <div className="font-semibold text-sm mb-1" style={{ color: alg.color }}>{alg.name}</div>
+                      <div className="text-sm leading-relaxed" style={{ color: "var(--fg-muted)" }}>{alg.desc}</div>
                     </div>
                   ))}
                 </div>
@@ -190,30 +247,52 @@ export default function Home() {
             )}
 
             {activeTab === "Métricas" && (
-              <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6">
-                <h2 className="text-lg font-semibold text-white mb-1">Métricas da Rede</h2>
-                <p className="text-sm text-slate-400 mb-5">
-                  Medidas estruturais do grafo. A densidade indica o quão conectada é a rede em relação ao máximo possível.
+              <div
+                className="rounded-2xl p-6"
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+              >
+                <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--fg)" }}>Métricas da Rede</h2>
+                <p className="text-sm mb-5" style={{ color: "var(--fg-muted)" }}>
+                  Medidas estruturais do grafo. A densidade indica o quão conectada é a rede em relação ao máximo teórico.
                 </p>
                 <MetricsCards graph={graph} />
               </div>
             )}
 
-            {activeTab === "Análises" && (
-              <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6">
-                <h2 className="text-lg font-semibold text-white mb-1">Análises Estatísticas</h2>
-                <p className="text-sm text-slate-400 mb-6">
-                  Visualizações que revelam a estrutura da rede, identificam hubs e comparam conectividade entre regiões.
+            {activeTab === "Insights" && (
+              <div
+                className="rounded-2xl p-6"
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+              >
+                <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--fg)" }}>Insights da Rede</h2>
+                <p className="text-sm mb-5" style={{ color: "var(--fg-muted)" }}>
+                  Descobertas calculadas automaticamente do grafo filtrado. Os valores mudam conforme você ajusta os filtros no painel lateral.
                 </p>
-                <ChartsSection graph={graph} />
+                <InsightsCards graph={graph} filteredEdges={filteredAdjacencias} />
+              </div>
+            )}
+
+            {activeTab === "Análises" && (
+              <div
+                className="rounded-2xl p-6"
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+              >
+                <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--fg)" }}>Análises Estatísticas</h2>
+                <p className="text-sm mb-5" style={{ color: "var(--fg-muted)" }}>
+                  Gráficos dinâmicos que revelam a estrutura da rede. Os charts de pizza e companhias refletem os filtros ativos.
+                </p>
+                <ChartsSection graph={graph} filteredEdges={filteredAdjacencias} />
               </div>
             )}
 
             {activeTab === "Rotas Obrigatórias" && (
-              <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-6">
-                <h2 className="text-lg font-semibold text-white mb-1">Caminhos Obrigatórios</h2>
-                <p className="text-sm text-slate-400 mb-5">
-                  7 pares definidos no projeto. Caminho mínimo calculado com Dijkstra. Clique em uma rota para visualizá-la no mapa interativo.
+              <div
+                className="rounded-2xl p-6"
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+              >
+                <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--fg)" }}>Caminhos Obrigatórios</h2>
+                <p className="text-sm mb-5" style={{ color: "var(--fg-muted)" }}>
+                  7 pares definidos no projeto. Clique em uma rota para visualizá-la no mapa interativo.
                 </p>
                 <MandatoryRoutes graph={graph} onRouteSelect={handleRouteSelect} />
               </div>
