@@ -634,8 +634,12 @@ def generate_pdf() -> None:
             "",
             "## Frontend interativo (Next.js)",
             "",
-            "    cd web && npm run dev",
+            "    cd web",
+            "    npm install",
+            "    npm run dev",
             "    # Acessar em http://localhost:3000",
+            "",
+            "Nota: web/.npmrc já aponta para registry.npmjs.org — npm install funciona em qualquer PC.",
         ])
 
         # ── 2. DOCUMENTAÇÃO TÉCNICA ───────────────────────────
