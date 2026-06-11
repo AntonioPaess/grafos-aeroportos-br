@@ -279,9 +279,9 @@ export default function Home() {
               >
                 <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--fg)" }}>Análises Estatísticas</h2>
                 <p className="text-sm mb-5" style={{ color: "var(--fg-muted)" }}>
-                  Gráficos dinâmicos que revelam a estrutura da rede. Os charts de pizza e companhias refletem os filtros ativos.
+                  Gráficos dinâmicos que revelam a estrutura da rede. Todos os charts refletem os filtros ativos.
                 </p>
-                <ChartsSection graph={graph} filteredEdges={filteredAdjacencias} />
+                <ChartsSection graph={filteredGraph} filteredEdges={filteredAdjacencias} />
               </div>
             )}
 

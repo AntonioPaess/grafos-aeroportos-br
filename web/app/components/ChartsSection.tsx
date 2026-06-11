@@ -2,7 +2,7 @@
 
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  RadarChart, PolarGrid, PolarAngleAxis, Radar, PieChart, Pie, Cell, Legend,
+  RadarChart, PolarGrid, PolarAngleAxis, Radar, Cell, Legend,
 } from "recharts";
 import { Graph } from "../lib/graph";
 import { Adjacencia } from "../lib/types";
@@ -25,20 +25,22 @@ function ChartCard({ title, explanation, children }: { title: string; explanatio
   );
 }
 
-const TICK = { fill: "var(--fg-muted)", fontSize: 12 };
-
 function tooltip() {
   return {
     contentStyle: {
-      background: "var(--bg-card)",
-      border: "1px solid var(--border)",
+      background: "#0f172a",
+      border: "1px solid rgba(148,163,184,0.15)",
       borderRadius: 10,
-      color: "var(--fg)",
+      color: "#f1f5f9",
       fontSize: 13,
     },
+    labelStyle: { color: "#f1f5f9" },
+    itemStyle: { color: "#94a3b8" },
     cursor: { fill: "rgba(148,163,184,0.06)" },
   };
 }
+
+const TICK = { fill: "#94a3b8", fontSize: 12 };
 
 export default function ChartsSection({ graph, filteredEdges }: ChartsSectionProps) {
   // Degree data (from full graph, sorted)
@@ -145,20 +147,21 @@ export default function ChartsSection({ graph, filteredEdges }: ChartsSectionPro
         </ResponsiveContainer>
       </ChartCard>
 
-      {/* Pie chart */}
+      {/* Region edge distribution */}
       <ChartCard
-        title="Distribuição de Rotas por Região (filtro atual)"
-        explanation="Proporção de rotas de cada região nas arestas filtradas. Reflete como os filtros de companhia e tipo alteram o peso de cada região na rede."
+        title="Rotas por Região (filtro atual)"
+        explanation="Quantidade de rotas de cada região nas arestas filtradas. Reflete como os filtros alteram o peso de cada região na rede."
       >
         <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie data={pieData} cx="50%" cy="50%" innerRadius={75} outerRadius={115}
-              paddingAngle={3} dataKey="value" nameKey="name">
-              {pieData.map((entry, i) => <Cell key={i} fill={entry.color} stroke="transparent" />)}
-            </Pie>
+          <BarChart data={pieData} layout="vertical" margin={{ top: 5, right: 35, bottom: 5, left: 70 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+            <XAxis type="number" tick={TICK} allowDecimals={false} />
+            <YAxis type="category" dataKey="name" tick={{ ...TICK, fontSize: 12 }} width={68} />
             <Tooltip {...tooltip()} formatter={(v) => [`${v} rotas`]} />
-            <Legend formatter={(value) => <span style={{ color: "var(--fg-muted)", fontSize: 13 }}>{value}</span>} />
-          </PieChart>
+            <Bar dataKey="value" name="Rotas" radius={[0, 4, 4, 0]}>
+              {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+            </Bar>
+          </BarChart>
         </ResponsiveContainer>
       </ChartCard>
 
@@ -206,7 +209,7 @@ export default function ChartsSection({ graph, filteredEdges }: ChartsSectionPro
         <ResponsiveContainer width="100%" height={300}>
           <RadarChart data={regionData}>
             <PolarGrid stroke="var(--border)" />
-            <PolarAngleAxis dataKey="regiao" tick={{ fill: "var(--fg-muted)", fontSize: 11 }} />
+            <PolarAngleAxis dataKey="regiao" tick={{ fill: "#94a3b8", fontSize: 11 }} />
             <Radar name="Aeroportos" dataKey="ordem" stroke="#38bdf8" fill="#38bdf8" fillOpacity={0.15} />
             <Radar name="Grau médio" dataKey="grauMedio" stroke="#a78bfa" fill="#a78bfa" fillOpacity={0.15} />
             <Radar name="Densidade %" dataKey="densidade" stroke="#34d399" fill="#34d399" fillOpacity={0.15} />

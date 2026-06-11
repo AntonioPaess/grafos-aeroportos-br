@@ -64,17 +64,19 @@ const RADAR_DATA = [
 function tt() {
   return {
     contentStyle: {
-      background: "var(--bg-card)",
-      border: "1px solid var(--border)",
+      background: "#0f172a",
+      border: "1px solid rgba(148,163,184,0.15)",
       borderRadius: 10,
-      color: "var(--fg)",
+      color: "#f1f5f9",
       fontSize: 13,
     },
+    labelStyle: { color: "#f1f5f9" },
+    itemStyle: { color: "#94a3b8" },
     cursor: { fill: "rgba(148,163,184,0.06)" },
   };
 }
 
-const TICK = { fill: "var(--fg-muted)", fontSize: 12 };
+const TICK = { fill: "#94a3b8", fontSize: 12 };
 
 function ChartCard({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
@@ -170,9 +172,9 @@ export default function FacebookPanel() {
             <ScatterChart margin={{ top: 5, right: 10, bottom: 25, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="degree" name="Grau" type="number" scale="log" domain={["auto", "auto"]}
-                tick={TICK} label={{ value: "Grau (log)", position: "insideBottom", offset: -12, fill: "var(--fg-muted)", fontSize: 12 }} />
+                tick={TICK} label={{ value: "Grau (log)", position: "insideBottom", offset: -12, fill: "#94a3b8", fontSize: 12 }} />
               <YAxis dataKey="freq" name="Frequência" type="number" scale="log" domain={["auto", "auto"]}
-                tick={TICK} label={{ value: "Freq. (log)", angle: -90, position: "insideLeft", fill: "var(--fg-muted)", fontSize: 12 }} />
+                tick={TICK} label={{ value: "Freq. (log)", angle: -90, position: "insideLeft", fill: "#94a3b8", fontSize: 12 }} />
               <ZAxis range={[30, 30]} />
               <Tooltip {...tt()} formatter={(v, n) => [v, n === "degree" ? "Grau" : "Freq."]} />
               <Scatter name="Graus" data={LOG_SCATTER} fill="#a78bfa" opacity={0.85} />
@@ -207,7 +209,7 @@ export default function FacebookPanel() {
           <ResponsiveContainer width="100%" height={240}>
             <RadarChart data={RADAR_DATA}>
               <PolarGrid stroke="var(--border)" />
-              <PolarAngleAxis dataKey="metric" tick={{ fill: "var(--fg-muted)", fontSize: 12 }} />
+              <PolarAngleAxis dataKey="metric" tick={{ fill: "#94a3b8", fontSize: 12 }} />
               <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} />
               <Radar name="BFS"      dataKey="BFS"      stroke="#38bdf8" fill="#38bdf8" fillOpacity={0.15} />
               <Radar name="DFS"      dataKey="DFS"      stroke="#a78bfa" fill="#a78bfa" fillOpacity={0.15} />
