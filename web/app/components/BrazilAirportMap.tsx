@@ -169,7 +169,7 @@ export default function BrazilAirportMap({
           opacity={0.2} style={{ filter: "brightness(2) saturate(0)" }} />
 
         {/* Regular filtered edges — colored by 1st airline */}
-        {filteredAdjacencias.map((e) => {
+        {filteredAdjacencias.map((e, i) => {
           if (pathEdges.has(`${e.origem}|${e.destino}`)) return null;
           const a = AIRPORT_MAP.get(e.origem);
           const b = AIRPORT_MAP.get(e.destino);
@@ -178,7 +178,7 @@ export default function BrazilAirportMap({
           const [x2, y2] = project(b.lat, b.lon);
           const color = AIRLINE_COLORS[e.companhias[0]] ?? "#94a3b8";
           return (
-            <line key={`e${e.origem}${e.destino}`}
+            <line key={`e${i}-${e.origem}${e.destino}`}
               x1={x1} y1={y1} x2={x2} y2={y2}
               stroke={color} strokeWidth={sw(e.tipo === "hub" ? 3.5 : e.tipo === "inter-regional" ? 2.5 : 1.8)}
               strokeLinecap="round" opacity={e.tipo === "hub" ? 0.35 : 0.22} />
